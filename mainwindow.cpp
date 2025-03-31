@@ -3,8 +3,9 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
+    , StateMachine(ST_MAX_STATES)
     , connectionState(false)
-    ,ui(new Ui::MainWindow)
+    , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
@@ -22,6 +23,21 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+STATE_DEFINE(MainWindow, Idle, NoEventData)
+{
+
+}
+
+STATE_DEFINE(MainWindow, Scan, NoEventData)
+{
+
+}
+
+STATE_DEFINE(MainWindow, Connect, NoEventData)
+{
+
 }
 
 void MainWindow::on_connectBtn_clicked()
