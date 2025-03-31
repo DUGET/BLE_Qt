@@ -28,7 +28,7 @@ void MainWindow::on_connectBtn_clicked()
 {
     if(connectionState)
     {
-        ui->connectBtn->setDisabled(true);
+        ui->connectBtn->toggleDisabled();
         ble->setDownConnection();
         return;
     }
@@ -40,7 +40,7 @@ void MainWindow::on_connectBtn_clicked()
         return;
     }
 
-    ui->connectBtn->setDisabled(true);
+    ui->connectBtn->toggleDisabled();
     ui->scanBtn->setDisabled(true);
     ble->startDiscovery(ui->devNameEdit->text());
 }
@@ -54,7 +54,7 @@ void MainWindow::on_ledRadBtn_clicked(bool checked)
 
 void MainWindow::on_connectionUpdate(bool connectionState)
 {
-    ui->connectBtn->setDisabled(false);
+    ui->connectBtn->toggleDisabled();
     this->connectionState = connectionState;
 
     if(connectionState)
@@ -73,7 +73,7 @@ void MainWindow::on_connectionUpdate(bool connectionState)
 
 void MainWindow::on_deviceListReady()
 {
-    ui->connectBtn->setDisabled(false);
+    ui->connectBtn->toggleDisabled();
     ui->scanBtn->setDisabled(false);
     QTableWidget* table = ui->devicesTable;
 
@@ -101,7 +101,7 @@ void MainWindow::on_scanBtn_clicked()
     }
     else
     {
-        ui->connectBtn->setDisabled(true);
+        ui->connectBtn->toggleDisabled();
         ui->scanBtn->setDisabled(true);
     }
 

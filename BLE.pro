@@ -13,11 +13,13 @@ CONFIG += c++17
 SOURCES += \
     ble.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    smartpushbutton.cpp
 
 HEADERS += \
     ble.h \
-    mainwindow.h
+    mainwindow.h \
+    smartpushbutton.h
 
 FORMS += \
     mainwindow.ui
