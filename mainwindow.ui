@@ -55,7 +55,7 @@
          </widget>
         </item>
         <item alignment="Qt::AlignmentFlag::AlignRight">
-         <widget class="SmartPushButton" name="connectBtn">
+         <widget class="QPushButton" name="connectBtn">
           <property name="text">
            <string>Connect</string>
           </property>
@@ -96,13 +96,6 @@
    </property>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>SmartPushButton</class>
-   <extends>QPushButton</extends>
-   <header>smartpushbutton.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -4,7 +4,6 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , StateMachine(ST_MAX_STATES)
-    , connectionState(false)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -13,6 +12,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ble, &BLE::connectionUpdateSignal, this, &MainWindow::on_connectionUpdate);
     connect(ble, &BLE::deviceListReady, this, &MainWindow::on_deviceListReady);
     connect(ui->devNameEdit, &QLineEdit::editingFinished, this, &MainWindow::on_connectBtn_clicked);
+
+    deviceName = new DeviceNameData("");
 
     ui->ledRadBtn->setDisabled(true);
     ui->devicesTable->horizontalHeader()->setStretchLastSection(true);
@@ -25,40 +26,18 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-STATE_DEFINE(MainWindow, Idle, NoEventData)
-{
-
-}
-
-STATE_DEFINE(MainWindow, Scan, NoEventData)
-{
-
-}
-
-STATE_DEFINE(MainWindow, Connect, NoEventData)
-{
-
-}
-
 void MainWindow::on_connectBtn_clicked()
 {
-    if(connectionState)
-    {
-        ui->connectBtn->toggleDisabled();
-        ble->setDownConnection();
-        return;
-    }
+    qDebug() << "On connect button";
+    deviceName->name = ui->devNameEdit->text();
 
-    auto devNameEditString = ui->devNameEdit->text();
-
-    if(devNameEditString.contains(" ") || devNameEditString == "")
-    {
-        return;
-    }
-
-    ui->connectBtn->toggleDisabled();
-    ui->scanBtn->setDisabled(true);
-    ble->startDiscovery(ui->devNameEdit->text());
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(ST_CONNECTING)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(ST_DISCONNECTING)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+    END_TRANSITION_MAP(deviceName)
 }
 
 
@@ -70,27 +49,21 @@ void MainWindow::on_ledRadBtn_clicked(bool checked)
 
 void MainWindow::on_connectionUpdate(bool connectionState)
 {
-    ui->connectBtn->toggleDisabled();
-    this->connectionState = connectionState;
+    qDebug() << "On connection update";
 
-    if(connectionState)
-    {
-        ui->connectBtn->setText("Disconnect");
-        ui->ledRadBtn->setDisabled(false);
-        ui->scanBtn->setDisabled(true);
-    }
-    else
-    {
-        ui->connectBtn->setText("Connect");
-        ui->ledRadBtn->setDisabled(true);
-        ui->scanBtn->setDisabled(false);
-    }
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)
+        TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)
+        TRANSITION_MAP_ENTRY(ST_CONNECTED)
+        TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)
+        TRANSITION_MAP_ENTRY(ST_IDLE)
+    END_TRANSITION_MAP(NULL)
 }
 
 void MainWindow::on_deviceListReady()
 {
-    ui->connectBtn->toggleDisabled();
-    ui->scanBtn->setDisabled(false);
+    qDebug() << "On device list ready";
+
     QTableWidget* table = ui->devicesTable;
 
     // Clear table
@@ -106,27 +79,95 @@ void MainWindow::on_deviceListReady()
         table->insertRow(table->rowCount());
         table->setItem(table->rowCount()-1, 0, new QTableWidgetItem(devInfo->name()));
     }
+
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(ST_IDLE)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+    END_TRANSITION_MAP(NULL)
 }
 
 
 void MainWindow::on_scanBtn_clicked()
 {
-    if(connectionState)
-    {
-        return;
-    }
-    else
-    {
-        ui->connectBtn->toggleDisabled();
-        ui->scanBtn->setDisabled(true);
-    }
-
-    ble->startDiscovery();
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(ST_SCANNING)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+    END_TRANSITION_MAP(NULL)
 }
 
 void MainWindow::on_devicesTable_itemDoubleClicked(QTableWidgetItem *item)
 {
-    qDebug() << item->text();
-    ble->startDiscovery(item->text());
+    // Explicit check in order not to allocate memory
+    if(GetCurrentState() == ST_CONNECTED)
+    {
+        return;
+    }
+
+    deviceName->name = item->text();
+
+    //TODO Pass device name
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(ST_CONNECTING)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+    END_TRANSITION_MAP(deviceName)
 }
 
+STATE_DEFINE(MainWindow, Idle, NoEventData)
+{
+    qDebug() << "Idle state";
+    ui->connectBtn->setText("Connect");
+    ui->connectBtn->setDisabled(false);
+    ui->scanBtn->setDisabled(false);
+}
+
+STATE_DEFINE(MainWindow, Scanning, NoEventData)
+{
+    qDebug() << "Scanning state";
+    ui->connectBtn->setDisabled(true);
+    ui->scanBtn->setDisabled(true);
+
+    ble->startDiscovery();
+}
+
+STATE_DEFINE(MainWindow, Connecting, DeviceNameData)
+{
+    qDebug() << "Connecting state";
+    if(data->name.contains(" ") || data->name == "")
+    {
+        InternalEvent(ST_IDLE);
+        return;
+    }
+
+    ui->connectBtn->setDisabled(true);
+    ui->scanBtn->setDisabled(true);
+    ble->startDiscovery(data->name);
+}
+
+STATE_DEFINE(MainWindow, Connected, NoEventData)
+{
+    qDebug() << "Connected state";
+    ui->connectBtn->setText("Disconnect");
+    ui->connectBtn->setDisabled(false);
+    ui->ledRadBtn->setDisabled(false);
+    ui->scanBtn->setDisabled(true);
+}
+
+STATE_DEFINE(MainWindow, Disconnecting, DeviceNameData)
+{
+    qDebug() << "Disconnecting state";
+    ui->ledRadBtn->setDisabled(true);
+    ui->scanBtn->setDisabled(true);
+    ui->connectBtn->setDisabled(true);
+
+    ble->setDownConnection();
+    InternalEvent(ST_IDLE);
+}

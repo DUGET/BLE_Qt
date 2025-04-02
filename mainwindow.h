@@ -12,6 +12,17 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+class DeviceNameData : public EventData
+{
+public:
+    DeviceNameData(QString name)
+    {
+        this->name = name;
+    }
+
+    QString name;
+};
+
 class MainWindow : public QMainWindow, public StateMachine
 {
     Q_OBJECT
@@ -19,22 +30,28 @@ class MainWindow : public QMainWindow, public StateMachine
     enum States
     {
         ST_IDLE,
-        ST_SCAN,
-        ST_CONNECT,
+        ST_SCANNING,
+        ST_CONNECTING,
+        ST_CONNECTED,
+        ST_DISCONNECTING,
         ST_MAX_STATES
     };
 
     STATE_DECLARE(MainWindow, 	Idle,			NoEventData)
-    STATE_DECLARE(MainWindow, 	Scan,			NoEventData)
-    STATE_DECLARE(MainWindow, 	Connect,		NoEventData)
+    STATE_DECLARE(MainWindow, 	Scanning,		NoEventData)
+    STATE_DECLARE(MainWindow, 	Connecting,		DeviceNameData)
+    STATE_DECLARE(MainWindow, 	Connected,		NoEventData)
+    STATE_DECLARE(MainWindow, 	Disconnecting,	DeviceNameData)
 
     BEGIN_STATE_MAP
         STATE_MAP_ENTRY({&Idle})
-        STATE_MAP_ENTRY({&Scan})
-        STATE_MAP_ENTRY({&Connect})
+        STATE_MAP_ENTRY({&Scanning})
+        STATE_MAP_ENTRY({&Connecting})
+        STATE_MAP_ENTRY({&Connected})
+        STATE_MAP_ENTRY({&Disconnecting})
     END_STATE_MAP
 
-    bool connectionState;
+    DeviceNameData* deviceName;
 
 public:
     MainWindow(QWidget *parent = nullptr);
