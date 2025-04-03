@@ -24,102 +24,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_connectBtn_clicked()
-{
-    qDebug() << "On connect button";
-
-    DeviceNameData* deviceName = new DeviceNameData(ui->devNameEdit->text());
-
-    BEGIN_TRANSITION_MAP
-        TRANSITION_MAP_ENTRY(ST_CONNECTING)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(ST_DISCONNECTING)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-    END_TRANSITION_MAP(deviceName)
-}
-
-
-void MainWindow::on_ledRadBtn_clicked(bool checked)
-{
-    // Hardcoded
-    ble->setLed(checked, 1);
-}
-
-void MainWindow::on_connectionUpdate(bool connectionState)
-{
-    qDebug() << "On connection update";
-
-    BEGIN_TRANSITION_MAP
-        TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)
-        TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)
-        TRANSITION_MAP_ENTRY(ST_CONNECTED)
-        TRANSITION_MAP_ENTRY(CANNOT_HAPPEN)
-        TRANSITION_MAP_ENTRY(ST_IDLE)
-    END_TRANSITION_MAP(NULL)
-}
-
-void MainWindow::on_deviceListReady()
-{
-    qDebug() << "On device list ready";
-
-    QTableWidget* table = ui->devicesTable;
-
-    // Clear table
-    table->clearContents();
-    while(table->rowCount() != 0)
-    {
-        table->removeRow(0);
-    }
-
-    // Insert name of devices into the table
-    for(auto &devInfo : ble->devices)
-    {
-        table->insertRow(table->rowCount());
-        table->setItem(table->rowCount()-1, 0, new QTableWidgetItem(devInfo->name()));
-    }
-
-    BEGIN_TRANSITION_MAP
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(ST_IDLE)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-    END_TRANSITION_MAP(NULL)
-}
-
-
-void MainWindow::on_scanBtn_clicked()
-{
-    BEGIN_TRANSITION_MAP
-        TRANSITION_MAP_ENTRY(ST_SCANNING)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-    END_TRANSITION_MAP(NULL)
-}
-
-void MainWindow::on_devicesTable_itemDoubleClicked(QTableWidgetItem *item)
-{
-    // Explicit check in order not to allocate memory
-    if(GetCurrentState() == ST_CONNECTED)
-    {
-        return;
-    }
-
-    DeviceNameData* deviceName = new DeviceNameData(item->text());
-
-    //TODO Pass device name
-    BEGIN_TRANSITION_MAP
-        TRANSITION_MAP_ENTRY(ST_CONNECTING)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
-    END_TRANSITION_MAP(deviceName)
-}
-
 STATE_DEFINE(MainWindow, Idle, NoEventData)
 {
     qDebug() << "Idle state";
@@ -168,4 +72,106 @@ STATE_DEFINE(MainWindow, Disconnecting, DeviceNameData)
     ui->connectBtn->setDisabled(true);
 
     ble->setDownConnection();
+}
+
+void MainWindow::on_connectBtn_clicked()
+{
+    qDebug() << "On connect button";
+
+    DeviceNameData* deviceName = new DeviceNameData(ui->devNameEdit->text());
+
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(ST_CONNECTING)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(ST_DISCONNECTING)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+    END_TRANSITION_MAP(deviceName)
+}
+
+
+void MainWindow::on_ledRadBtn_clicked(bool checked)
+{
+    // Hardcoded
+    ble->setLed(checked, 1);
+}
+
+void MainWindow::on_connectionUpdate(bool connectionState)
+{
+    qDebug() << "On connection update";
+
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(ST_CONNECTED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(ST_IDLE)
+    END_TRANSITION_MAP(NULL)
+}
+
+void MainWindow::on_deviceListReady()
+{
+    qDebug() << "On device list ready";
+
+    QTableWidget* table = ui->devicesTable;
+
+    // Clear table
+    table->clearContents();
+    while(table->rowCount() != 0)
+    {
+        table->removeRow(0);
+    }
+
+    // Insert name of devices into the table
+    for(auto &devInfo : ble->devices)
+    {
+        table->insertRow(table->rowCount());
+        table->setItem(table->rowCount()-1, 0, new QTableWidgetItem(devInfo->name()));
+    }
+
+    if(GetCurrentState() == ST_CONNECTING)
+    {
+        ble->setUpConnection();
+        return;
+    }
+
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(ST_IDLE)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+    END_TRANSITION_MAP(NULL)
+}
+
+
+void MainWindow::on_scanBtn_clicked()
+{
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(ST_SCANNING)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+    END_TRANSITION_MAP(NULL)
+}
+
+void MainWindow::on_devicesTable_itemDoubleClicked(QTableWidgetItem *item)
+{
+    // Explicit check in order not to allocate memory
+    if(GetCurrentState() == ST_CONNECTED)
+    {
+        return;
+    }
+
+    DeviceNameData* deviceName = new DeviceNameData(item->text());
+
+    //TODO Pass device name
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(ST_CONNECTING)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED)
+    END_TRANSITION_MAP(deviceName)
 }

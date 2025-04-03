@@ -198,7 +198,6 @@ void BLE::scanFinished()
     if(targetDevice != nullptr)
     {
         qDebug() << "Found:" << targetName;
-        setUpConnection();
 
     }
     else

@@ -27,30 +27,6 @@ class MainWindow : public QMainWindow, public StateMachine
 {
     Q_OBJECT
 
-    enum States
-    {
-        ST_IDLE,
-        ST_SCANNING,
-        ST_CONNECTING,
-        ST_CONNECTED,
-        ST_DISCONNECTING,
-        ST_MAX_STATES
-    };
-
-    STATE_DECLARE(MainWindow, 	Idle,			NoEventData)
-    STATE_DECLARE(MainWindow, 	Scanning,		NoEventData)
-    STATE_DECLARE(MainWindow, 	Connecting,		DeviceNameData)
-    STATE_DECLARE(MainWindow, 	Connected,		NoEventData)
-    STATE_DECLARE(MainWindow, 	Disconnecting,	DeviceNameData)
-
-    BEGIN_STATE_MAP
-        STATE_MAP_ENTRY({&Idle})
-        STATE_MAP_ENTRY({&Scanning})
-        STATE_MAP_ENTRY({&Connecting})
-        STATE_MAP_ENTRY({&Connected})
-        STATE_MAP_ENTRY({&Disconnecting})
-    END_STATE_MAP
-
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -66,5 +42,29 @@ private slots:
 private:
     Ui::MainWindow *ui;
     BLE* ble;
+
+    enum States
+    {
+        ST_IDLE,
+        ST_SCANNING,
+        ST_CONNECTING,
+        ST_CONNECTED,
+        ST_DISCONNECTING,
+        ST_MAX_STATES
+    };
+
+    BEGIN_STATE_MAP
+        STATE_MAP_ENTRY({&Idle})
+        STATE_MAP_ENTRY({&Scanning})
+        STATE_MAP_ENTRY({&Connecting})
+        STATE_MAP_ENTRY({&Connected})
+        STATE_MAP_ENTRY({&Disconnecting})
+        END_STATE_MAP
+
+    STATE_DECLARE(MainWindow, 	Idle,			NoEventData)
+    STATE_DECLARE(MainWindow, 	Scanning,		NoEventData)
+    STATE_DECLARE(MainWindow, 	Connecting,		DeviceNameData)
+    STATE_DECLARE(MainWindow, 	Connected,		NoEventData)
+    STATE_DECLARE(MainWindow, 	Disconnecting,	DeviceNameData)
 };
 #endif // MAINWINDOW_H
