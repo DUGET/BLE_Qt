@@ -9,31 +9,31 @@ class BLE : public QObject
 {
     Q_OBJECT
 
-    QString targetName;
-    QBluetoothDeviceDiscoveryAgent* devDiscAgent;
-    QBluetoothDeviceInfo* targetDevice;
-    QLowEnergyController* bleCntrl;
-    QLowEnergyService* bleService;
-    QList<QLowEnergyCharacteristic> bleCharacteristics;
-
-    void setUpService(const QBluetoothUuid &service);
-
 public:
     BLE();
     ~BLE();
-
-    QList<QBluetoothDeviceInfo*> devices;
 
     void startDiscovery();
     void startDiscovery(const QString targetName);
     void setUpConnection();
     void setDownConnection();
     void setLed(bool state, int charIndex);
+    QList<QBluetoothDeviceInfo*>* getDeviceList();
+
+private:
+    void setUpService(const QBluetoothUuid &service);
+
+    QString m_targetName;
+    QBluetoothDeviceDiscoveryAgent* m_devDiscAgent;
+    QBluetoothDeviceInfo* m_targetDevice = nullptr;
+    QLowEnergyController* m_bleCntrl;
+    QLowEnergyService* m_bleService;
+    QList<QLowEnergyCharacteristic> m_bleCharacteristics;
+    QList<QBluetoothDeviceInfo*> m_devices;
 
 signals:
     void connectionUpdateSignal(bool connectionState);
     void deviceListReady();
-
 
 public slots:
     void connected();

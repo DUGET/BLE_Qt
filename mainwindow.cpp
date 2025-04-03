@@ -27,6 +27,8 @@ MainWindow::~MainWindow()
 STATE_DEFINE(MainWindow, Idle, NoEventData)
 {
     qDebug() << "Idle state";
+
+    ui->devNameEdit->setDisabled(false);
     ui->connectBtn->setText("Connect");
     ui->connectBtn->setDisabled(false);
     ui->scanBtn->setDisabled(false);
@@ -35,6 +37,8 @@ STATE_DEFINE(MainWindow, Idle, NoEventData)
 STATE_DEFINE(MainWindow, Scanning, NoEventData)
 {
     qDebug() << "Scanning state";
+
+    ui->devNameEdit->setDisabled(true);
     ui->connectBtn->setDisabled(true);
     ui->scanBtn->setDisabled(true);
 
@@ -44,14 +48,17 @@ STATE_DEFINE(MainWindow, Scanning, NoEventData)
 STATE_DEFINE(MainWindow, Connecting, DeviceNameData)
 {
     qDebug() << "Connecting state";
+
     if(data->name.contains(" ") || data->name == "")
     {
         InternalEvent(ST_IDLE);
         return;
     }
 
+    ui->devNameEdit->setDisabled(true);
     ui->connectBtn->setDisabled(true);
     ui->scanBtn->setDisabled(true);
+
     ble->startDiscovery(data->name);
 }
 
@@ -76,8 +83,6 @@ STATE_DEFINE(MainWindow, Disconnecting, DeviceNameData)
 
 void MainWindow::on_connectBtn_clicked()
 {
-    qDebug() << "On connect button";
-
     DeviceNameData* deviceName = new DeviceNameData(ui->devNameEdit->text());
 
     BEGIN_TRANSITION_MAP
@@ -98,8 +103,6 @@ void MainWindow::on_ledRadBtn_clicked(bool checked)
 
 void MainWindow::on_connectionUpdate(bool connectionState)
 {
-    qDebug() << "On connection update";
-
     BEGIN_TRANSITION_MAP
         TRANSITION_MAP_ENTRY(EVENT_IGNORED)
         TRANSITION_MAP_ENTRY(EVENT_IGNORED)
@@ -111,8 +114,6 @@ void MainWindow::on_connectionUpdate(bool connectionState)
 
 void MainWindow::on_deviceListReady()
 {
-    qDebug() << "On device list ready";
-
     QTableWidget* table = ui->devicesTable;
 
     // Clear table
@@ -123,7 +124,7 @@ void MainWindow::on_deviceListReady()
     }
 
     // Insert name of devices into the table
-    for(auto &devInfo : ble->devices)
+    for(auto &devInfo : *ble->getDeviceList())
     {
         table->insertRow(table->rowCount());
         table->setItem(table->rowCount()-1, 0, new QTableWidgetItem(devInfo->name()));
@@ -158,8 +159,8 @@ void MainWindow::on_scanBtn_clicked()
 
 void MainWindow::on_devicesTable_itemDoubleClicked(QTableWidgetItem *item)
 {
-    // Explicit check in order not to allocate memory
-    if(GetCurrentState() == ST_CONNECTED)
+    // Explicit check in order not to allocate extra memory
+    if(GetCurrentState() != ST_IDLE)
     {
         return;
     }
