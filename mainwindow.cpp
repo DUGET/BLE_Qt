@@ -13,8 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ble, &BLE::deviceListReady, this, &MainWindow::on_deviceListReady);
     connect(ui->devNameEdit, &QLineEdit::editingFinished, this, &MainWindow::on_connectBtn_clicked);
 
-    deviceName = new DeviceNameData("");
-
     ui->ledRadBtn->setDisabled(true);
     ui->devicesTable->horizontalHeader()->setStretchLastSection(true);
     ui->devicesTable->insertColumn(0);
@@ -29,7 +27,8 @@ MainWindow::~MainWindow()
 void MainWindow::on_connectBtn_clicked()
 {
     qDebug() << "On connect button";
-    deviceName->name = ui->devNameEdit->text();
+
+    DeviceNameData* deviceName = new DeviceNameData(ui->devNameEdit->text());
 
     BEGIN_TRANSITION_MAP
         TRANSITION_MAP_ENTRY(ST_CONNECTING)
@@ -109,7 +108,7 @@ void MainWindow::on_devicesTable_itemDoubleClicked(QTableWidgetItem *item)
         return;
     }
 
-    deviceName->name = item->text();
+    DeviceNameData* deviceName = new DeviceNameData(item->text());
 
     //TODO Pass device name
     BEGIN_TRANSITION_MAP
@@ -169,5 +168,4 @@ STATE_DEFINE(MainWindow, Disconnecting, DeviceNameData)
     ui->connectBtn->setDisabled(true);
 
     ble->setDownConnection();
-    InternalEvent(ST_IDLE);
 }

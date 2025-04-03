@@ -51,8 +51,6 @@ class MainWindow : public QMainWindow, public StateMachine
         STATE_MAP_ENTRY({&Disconnecting})
     END_STATE_MAP
 
-    DeviceNameData* deviceName;
-
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
