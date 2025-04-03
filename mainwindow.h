@@ -31,14 +31,6 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-private slots:
-    void on_connectBtn_clicked();
-    void on_ledRadBtn_clicked(bool checked);
-    void on_connectionUpdate(bool connectionState);
-    void on_deviceListReady();
-    void on_scanBtn_clicked();
-    void on_devicesTable_itemDoubleClicked(QTableWidgetItem *item);
-
 private:
     Ui::MainWindow *ui;
     BLE* ble;
@@ -66,5 +58,13 @@ private:
     STATE_DECLARE(MainWindow, 	Connecting,		DeviceNameData)
     STATE_DECLARE(MainWindow, 	Connected,		NoEventData)
     STATE_DECLARE(MainWindow, 	Disconnecting,	DeviceNameData)
+
+private slots:
+    void on_connectBtn_clicked();
+    void on_ledRadBtn_clicked(bool checked);
+    void on_connectionUpdate(bool connectionState);
+    void on_deviceListReady();
+    void on_scanBtn_clicked();
+    void on_devicesTable_itemDoubleClicked(QTableWidgetItem *item);
 };
 #endif // MAINWINDOW_H

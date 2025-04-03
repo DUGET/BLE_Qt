@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->devicesTable->horizontalHeader()->setStretchLastSection(true);
     ui->devicesTable->insertColumn(0);
     ui->devicesTable->setHorizontalHeaderLabels(QStringList{"Found devices"});
+    ui->waitIndicator->hide();
 }
 
 MainWindow::~MainWindow()
@@ -32,6 +33,7 @@ STATE_DEFINE(MainWindow, Idle, NoEventData)
     ui->connectBtn->setText("Connect");
     ui->connectBtn->setDisabled(false);
     ui->scanBtn->setDisabled(false);
+    ui->waitIndicator->disable();
 }
 
 STATE_DEFINE(MainWindow, Scanning, NoEventData)
@@ -41,6 +43,7 @@ STATE_DEFINE(MainWindow, Scanning, NoEventData)
     ui->devNameEdit->setDisabled(true);
     ui->connectBtn->setDisabled(true);
     ui->scanBtn->setDisabled(true);
+    ui->waitIndicator->enable();
 
     ble->startDiscovery();
 }
@@ -58,6 +61,7 @@ STATE_DEFINE(MainWindow, Connecting, DeviceNameData)
     ui->devNameEdit->setDisabled(true);
     ui->connectBtn->setDisabled(true);
     ui->scanBtn->setDisabled(true);
+    ui->waitIndicator->enable();
 
     ble->startDiscovery(data->name);
 }
@@ -65,10 +69,12 @@ STATE_DEFINE(MainWindow, Connecting, DeviceNameData)
 STATE_DEFINE(MainWindow, Connected, NoEventData)
 {
     qDebug() << "Connected state";
+
     ui->connectBtn->setText("Disconnect");
     ui->connectBtn->setDisabled(false);
     ui->ledRadBtn->setDisabled(false);
     ui->scanBtn->setDisabled(true);
+    ui->waitIndicator->disable();
 }
 
 STATE_DEFINE(MainWindow, Disconnecting, DeviceNameData)

@@ -16,7 +16,8 @@ SOURCES += \
     ble.cpp \
     main.cpp \
     mainwindow.cpp \
-    smartpushbutton.cpp
+    smartpushbutton.cpp \
+    waitindicator.cpp
 
 HEADERS += \
     StateMachine/datatypes.h \
@@ -24,7 +25,8 @@ HEADERS += \
     StateMachine/statemachine.h \
     ble.h \
     mainwindow.h \
-    smartpushbutton.h
+    smartpushbutton.h \
+    waitindicator.h
 
 FORMS += \
     mainwindow.ui
